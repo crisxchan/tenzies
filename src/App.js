@@ -1,7 +1,63 @@
+import { useState, useEffect } from 'react';
+import { nanoid } from 'nanoid';
 import Die from './components/Die';
 import './styles/App.css';
 
 function App() {
+  const [dice, setDice] = useState(allNewDice()) 
+  const [tenzies, setTenzies] = useState(false)
+
+  useEffect(() => {
+    const allDieHeld = dice.every(die => die.isHeld)
+    const allDieSameValue = dice.every(die => dice[0].value === die.value)  
+    
+    if (allDieHeld && allDieSameValue) {
+      setTenzies(true)
+      console.log("won")
+    }
+  }, [dice])
+
+  const diceElements = dice.map(die => (
+    <Die
+      key={die.id} 
+      value={die.value}
+      isHeld={die.isHeld}
+      holdDice={() => holdDice(die.id)}
+    />
+  ))
+
+  function generateNewDie() {
+    return {
+      id: nanoid(),
+      value: Math.round(Math.random() * 6),
+      isHeld: false
+    }
+  }
+
+  function allNewDice() {
+    const newDice = []
+    for(let i = 0; i < 10; i++) {
+      newDice.push(generateNewDie())
+    }
+    return newDice
+  }  
+
+  function rollDice() {
+    setDice(oldDice => oldDice.map(die => {
+      return die.isHeld ? die : generateNewDie()
+    }))
+  }
+
+  function holdDice(id) {
+    setDice(oldDice => oldDice.map(die => {
+      return die.id === id ? {
+        ...die,
+        isHeld: !die.isHeld
+      }
+      : die
+    }))
+  }
+
   return (
     <div className="App">
       <div className="tenzies-wrapper">
@@ -14,18 +70,9 @@ function App() {
         </div>
         
         <div className="die-wrapper">
-          <Die value={1} />
-          <Die value={2} />
-          <Die value={3} />
-          <Die value={4} />
-          <Die value={5} />
-          <Die value={6} />
-          <Die value={7} />
-          <Die value={8} />
-          <Die value={9} />
-          <Die value={0} />
+          { diceElements }
         </div>
-        <button className="btn-roll">Roll</button>
+        <button onClick={ rollDice } className="btn-roll">Roll</button>
       </div>
     </div>
   );
